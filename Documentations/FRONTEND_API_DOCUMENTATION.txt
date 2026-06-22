@@ -1,0 +1,504 @@
+PARSEQRI FRONTEND API DOCUMENTATION
+=================================
+
+Base URL: http://localhost:8000
+Authentication: Bearer Token (JWT)
+
+This document outlines the API services used by the ParseQri frontend application, organized by the service modules in `frontend/src/services/`.
+
+================================================================================
+1. MAIN API SERVICE (src/services/api.ts)
+================================================================================
+
+This file contains the core `apiClient` instance with strict interceptors for JWT token handling and automatic refreshing.
+
+1.1 Authentication (authService)
+--------------------------------
+- register(username, email, password): POST /auth/register
+- login(username_or_email, password): POST /auth/login
+- getCurrentUser(): GET /auth/me
+- checkAuth(): POST /auth/token/verify/
+- logout(): Clears local storage
+
+1.2 Database Configuration (dbService)
+--------------------------------------
+- getConfigs(): GET /db/config
+- createConfig(config): POST /db/config
+- createDefaultConfig(): POST /db/default-config
+
+1.3 Text-to-SQL & Database (textToSqlService)
+---------------------------------------------
+- getDatabases(): GET /api/databases
+- processQuery(query, visualization, databaseId): POST /api/text-to-sql
+  * Used for querying connected MSSQL/MySQL databases via the Text-to-SQL LangGraph agent.
+
+1.4 Visualization (visualizerService)
+-------------------------------------
+- generateVisualization(queryId, chartType): POST /visualizer/generate/
+- getRecommendedChartType(data): POST /visualizer/recommend-chart/
+- exportData(queryId, format): POST /visualizer/export/
+
+1.5 Datasets (datasetService)
+-----------------------------
+- getDatasets(): GET /datasets/
+- uploadDataset(formData): POST /datasets/upload/
+- uploadCsv(file, dbId): POST /data/upload/{dbId} (Backend proxy/temp)
+
+================================================================================
+2. CSV AGENT SERVICE (src/services/csvAgent.ts)
+================================================================================
+
+This service interacts with the `ParseQri_MCP/CSV_Agent` endpoints via the `/csv` prefix.
+
+2.1 Querying
+------------
+- processQuery(query, tableName, visualization, databaseId): POST /csv/query
+- executeSql(sqlQuery): POST /csv/execute_sql
+
+2.2 Management
+--------------
+- uploadCsv(file, dbId): POST /csv/upload
+- listTables(): GET /csv/tables
+- getTableSchema(tableName): GET /csv/schema/{tableName}
+
+================================================================================
+3. AUTHENTICATION FLOW
+================================================================================
+
+3.1 Request Interceptor
+-----------------------
+Automatically adds `Authorization: Bearer <token>` to all requests if a token exists in localStorage.
+
+3.2 Response Interceptor
+------------------------
+Handles 401 Unauthorized responses:
+1. Detects 401 status.
+2. Checks for `refresh_token` in localStorage.
+3. Calls `POST /auth/token/refresh/`.
+4. If successful:
+   - Updates `localStorage` with new access token.
+   - Retries the original failed request with the new token.
+5. If failed:
+   - Clears tokens.
+   - Redirects to `/login`.
+
+================================================================================
+4. ERROR HANDLING
+================================================================================
+
+- Standard HTTP Status Codes (200, 400, 401, 403, 404, 500).
+- Backend returns detailed error messages in `error.response.data.detail`.
+- Frontend services throw Error objects containing these details for UI consumption.
+
+================================================================================
+END OF DOCUMENTATION
+================================================================================
+=================================
+
+Base URL: http://localhost:8000
+Authentication: Bearer Token (JWT)
+
+This document outlines all API endpoints used by the ParseQri frontend application, organized by functionality.
+
+================================================================================
+1. AUTHENTICATION SERVICES
+================================================================================
+
+1.1 User Registration
+---------------------
+Endpoint: POST /auth/register
+Purpose: Register a new user account
+Request Body:
+{
+  "username": "string",
+  "email": "string", 
+  "password": "string"
+}
+Response:
+{
+  "id": "number",
+  "username": "string",
+  "email": "string"
+}
+Frontend Function: authService.register(username, email, password)
+
+1.2 User Login
+--------------
+Endpoint: POST /auth/login
+Purpose: Authenticate user and get access tokens
+Request Body:
+{
+  "username_or_email": "string",
+  "password": "string"
+}
+Response:
+{
+  "access": "string (JWT token)",
+  "refresh": "string (refresh token)",
+  "token_type": "bearer"
+}
+Frontend Function: authService.login(username_or_email, password)
+
+1.3 Token Refresh
+-----------------
+Endpoint: POST /auth/token/refresh/
+Purpose: Refresh expired access token using refresh token
+Request Body:
+{
+  "refresh": "string (refresh token)"
+}
+Response:
+{
+  "access": "string (new JWT token)",
+  "token_type": "bearer"
+}
+Frontend Function: Automatically handled by axios interceptor
+
+1.4 Token Verification
+----------------------
+Endpoint: POST /auth/token/verify/
+Purpose: Verify if a token is valid
+Request Body:
+{
+  "token": "string (JWT token)"
+}
+Response:
+{
+  "valid": true
+}
+Frontend Function: authService.checkAuth()
+
+1.5 Get Current User
+--------------------
+Endpoint: GET /auth/me
+Purpose: Get current authenticated user information
+Headers: Authorization: Bearer <token>
+Response:
+{
+  "id": "number",
+  "username": "string", 
+  "email": "string"
+}
+Frontend Function: authService.getCurrentUser()
+
+1.6 Logout
+----------
+Purpose: Clear local storage and redirect to landing page
+Frontend Function: authService.logout()
+Note: This is a client-side operation that clears tokens from localStorage
+
+================================================================================
+2. DATABASE CONFIGURATION SERVICES
+================================================================================
+
+2.1 Test Database Connection
+----------------------------
+Endpoint: POST /db/test-connection
+Purpose: Test database connection without saving configuration
+Headers: Authorization: Bearer <token>
+Request Body:
+{
+  "server_name": "string",
+  "database_name": "string",
+  "use_windows_auth": true,
+  "db_type": "string"
+}
+Response:
+{
+  "status": "success|error",
+  "message": "string"
+}
+Frontend Function: dbService.testConnection(config)
+
+2.2 Create Database Configuration
+---------------------------------
+Endpoint: POST /db/config
+Purpose: Save database configuration for user
+Headers: Authorization: Bearer <token>
+Request Body:
+{
+  "db_type": "string",
+  "server_name": "string",
+  "database_name": "string",
+  "use_windows_auth": true,
+  "description": "string (optional)"
+}
+Response:
+{
+  "id": "number",
+  "user_id": "number",
+  "db_type": "string",
+  "server_name": "string",
+  "database_name": "string",
+  "use_windows_auth": true,
+  "description": "string"
+}
+Frontend Function: dbService.createConfig(config)
+
+2.3 Get Database Configurations
+-------------------------------
+Endpoint: GET /db/configs
+Purpose: Get all database configurations for authenticated user
+Headers: Authorization: Bearer <token>
+Response: Array of database configuration objects
+Frontend Function: dbService.getConfigs()
+
+2.4 Get Database Metadata
+-------------------------
+Endpoint: GET /db/metadata/{config_id}
+Purpose: Get metadata for a specific database configuration
+Headers: Authorization: Bearer <token>
+Response:
+{
+  "status": "success",
+  "database_info": {
+    "server_name": "string",
+    "database_name": "string",
+    "description": "string"
+  },
+  "tables": [...],
+  "source": "chromadb|fresh_extraction"
+}
+Frontend Function: dbService.getMetadata(configId)
+
+2.5 Extract Metadata
+--------------------
+Endpoint: POST /db/extract-metadata/{config_id}
+Purpose: Extract metadata from external database and store in ChromaDB
+Headers: Authorization: Bearer <token>
+Response:
+{
+  "success": true|false,
+  "status": "success|error",
+  "message": "string",
+  "metadata": [...],
+  "extraction_method": "string"
+}
+Frontend Function: dbService.extractMetadata(configId)
+
+2.6 Search Metadata
+-------------------
+Endpoint: GET /db/search-metadata
+Purpose: Search metadata using query string
+Headers: Authorization: Bearer <token>
+Query Parameters:
+- query: string (search term)
+- limit: number (optional, default 5)
+Response:
+{
+  "status": "success",
+  "query": "string",
+  "results": [...]
+}
+Frontend Function: dbService.searchMetadata(query, limit)
+
+================================================================================
+3. TEXT-TO-SQL SERVICES (AI QUERY PROCESSING)
+================================================================================
+
+3.1 Process Natural Language Query
+----------------------------------
+Endpoint: POST /api/text-to-sql
+Purpose: Convert natural language query to SQL and execute it
+Headers: Authorization: Bearer <token>
+Request Body:
+{
+  "query": "string (natural language query)",
+  "user_id": "string (optional, defaults to authenticated user)",
+  "visualization": "boolean (optional, default false)"
+}
+Response:
+{
+  "answer": "string (natural language response)",
+  "sql_query": "string (generated SQL)",
+  "data": "array (query results)",
+  "chart_type": "string (bar|line|pie)",
+  "question": "string (original question)"
+}
+Frontend Function: textToSqlService.processQuery(query, visualization, userId)
+
+================================================================================
+4. VISUALIZATION SERVICES
+================================================================================
+
+4.1 Generate Visualization
+--------------------------
+Endpoint: POST /visualizer/generate/
+Purpose: Generate chart/visualization from query results
+Headers: Authorization: Bearer <token>
+Request Body:
+{
+  "query_id": "number",
+  "chart_type": "string (optional)"
+}
+Response:
+{
+  "chart_data": "object",
+  "chart_config": "object"
+}
+Frontend Function: visualizerService.generateVisualization(queryId, chartType)
+
+4.2 Get Recommended Chart Type
+------------------------------
+Endpoint: POST /visualizer/recommend-chart/
+Purpose: Get recommended chart type based on data
+Headers: Authorization: Bearer <token>
+Request Body:
+{
+  "data": "array"
+}
+Response:
+{
+  "recommended_type": "string",
+  "confidence": "number"
+}
+Frontend Function: visualizerService.getRecommendedChartType(data)
+
+4.3 Export Data
+---------------
+Endpoint: POST /visualizer/export/
+Purpose: Export query results in specified format
+Headers: Authorization: Bearer <token>
+Request Body:
+{
+  "query_id": "number",
+  "format": "csv|json"
+}
+Response: File blob
+Frontend Function: visualizerService.exportData(queryId, format)
+
+================================================================================
+5. CSV ANALYSIS SERVICES
+================================================================================
+
+5.1 Process CSV Query
+---------------------
+Endpoint: POST /csv/query
+Purpose: Query CSV data with natural language
+Request Body:
+{
+  "query": "string",
+  "table_name": "string (optional)", 
+  "visualization": "boolean",
+  "database_id": "number (optional)"
+}
+Response:
+{
+  "answer": "string",
+  "sql_query": "string",
+  "data": "array",
+  "chart_type": "string",
+  "visualization_data": "object"
+}
+Frontend Function: csvAgentService.processQuery(query, tableName, visualization, databaseId)
+
+5.2 Execute SQL
+---------------
+Endpoint: POST /csv/execute_sql
+Purpose: Execute raw SQL query against CSV data
+Request Body:
+{
+  "sql_query": "string"
+}
+Response:
+{
+  "answer": "string",
+  "sql_query": "string",
+  "data": "array"
+}
+Frontend Function: csvAgentService.executeSql(sqlQuery)
+
+5.3 Upload CSV
+--------------
+Endpoint: POST /csv/upload
+Purpose: Upload a new CSV file for analysis
+Request Body: FormData with 'file' and optional 'db_id'
+Response:
+{
+  "success": "boolean",
+  "table_name": "string",
+  "message": "string"
+}
+Frontend Function: csvAgentService.uploadCsv(file, dbId)
+
+5.4 List Tables
+---------------
+Endpoint: GET /csv/tables
+Purpose: List available CSV tables
+Response: Array of table objects
+Frontend Function: csvAgentService.listTables()
+
+5.5 Get Table Schema
+--------------------
+Endpoint: GET /csv/schema/{table_name}
+Purpose: Get columns and types for a table
+Response:
+{
+  "table_name": "string",
+  "columns": "array"
+}
+Frontend Function: csvAgentService.getTableSchema(tableName)
+
+================================================================================
+6. AUTHENTICATION INTERCEPTORS
+================================================================================
+
+6.1 Request Interceptor
+-----------------------
+Purpose: Automatically add Authorization header to all requests
+Implementation: Adds "Bearer <token>" header from localStorage
+
+6.2 Response Interceptor
+------------------------
+Purpose: Handle 401 Unauthorized responses and token refresh
+Implementation: 
+- Detects 401 responses
+- Attempts token refresh using refresh token
+- Retries original request with new token
+- Redirects to login if refresh fails
+
+================================================================================
+7. ERROR HANDLING
+================================================================================
+
+7.1 HTTP Error Responses
+-------------------------
+- 400 Bad Request: Invalid request data
+- 401 Unauthorized: Invalid or expired token
+- 403 Forbidden: Insufficient permissions
+- 404 Not Found: Resource not found
+- 422 Unprocessable Entity: Validation errors
+- 500 Internal Server Error: Server-side errors
+
+7.2 Frontend Error Handling
+----------------------------
+- All API functions use try-catch blocks
+- HTTP errors are extracted from error.response.data.detail
+- Tokens are automatically refreshed on 401 errors
+- Users are redirected to login on authentication failures
+
+================================================================================
+8. CONFIGURATION
+================================================================================
+
+8.1 Base Configuration
+-----------------------
+- API Base URL: http://localhost:8000
+- Default Content-Type: application/json
+- Authentication: JWT Bearer tokens
+- Token Storage: localStorage
+
+7.2 Token Management
+--------------------
+- Access Token Key: 'token'
+- Refresh Token Key: 'refresh_token'
+- Username Key: 'username'
+- Automatic token refresh on 401 responses
+
+================================================================================
+END OF DOCUMENTATION
+================================================================================
+
+Last Updated: March 2024
+Version: 2.0
+Contact: ParseQri Development Team

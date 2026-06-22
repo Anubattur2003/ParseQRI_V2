@@ -1,0 +1,86 @@
+[
+{
+    "id": 1,
+    "question": "How many compressors are fitted onboard, along with their descriptions?",
+    "db_schema": "Tables: M_Equipment(EquipmentName, Universal_ID_M_Equipment), T_EquipmentShipDetail(Nomenclature, EquipmentShipID, Universal_ID_M_Equipment)",
+    "sql": "SELECT tesd.Nomenclature, COUNT(tesd.EquipmentShipID) AS NumberOfCompressorsFitted FROM M_Equipment AS me JOIN T_EquipmentShipDetail AS tesd ON tesd.Universal_ID_M_Equipment = me.Universal_ID_M_Equipment WHERE me.EquipmentName LIKE '%compressor%' GROUP BY tesd.Nomenclature;"
+},
+{
+    "id": 2,
+    "question": "How many DARTs have been raised on each compressor?",
+    "db_schema": "Tables: T_Dart(DartID, Universal_ID_T_EquipmentShipDetail), T_EquipmentShipDetail(Universal_ID_T_EquipmentShipDetail, Universal_ID_M_Equipment), M_Equipment(EquipmentName, Universal_ID_M_Equipment)",
+    "sql": "SELECT me.EquipmentName, COUNT(td.DartID) AS NumberOfDartsRaised FROM T_Dart AS td JOIN T_EquipmentShipDetail AS tesd ON td.Universal_ID_T_EquipmentShipDetail = tesd.Universal_ID_T_EquipmentShipDetail JOIN M_Equipment AS me ON tesd.Universal_ID_M_Equipment = me.Universal_ID_M_Equipment GROUP BY me.EquipmentName ORDER BY me.EquipmentName;"
+},
+{
+    "id": 3,
+    "question": "What is the average MTBF (Mean Time Between Failures) for any compressor?",
+    "db_schema": "Tables: M_Equipment(EquipmentID, EquipmentName), T_EquipmentShipDetail(EquipmentID, EquipmentShipID), T_Dart(EquipmentShipID, TotalRunningHours)",
+    "sql": "SELECT AVG(FailureIntervals.TimeBetweenFailures) AS AverageMTBF FROM (SELECT td.TotalRunningHours - LAG(td.TotalRunningHours, 1, 0) OVER (PARTITION BY tesd.EquipmentShipID ORDER BY td.TotalRunningHours) AS TimeBetweenFailures FROM M_Equipment AS me INNER JOIN T_EquipmentShipDetail AS tesd ON me.EquipmentID = tesd.EquipmentID INNER JOIN T_Dart AS td ON tesd.EquipmentShipID = td.EquipmentShipID WHERE LOWER(me.EquipmentName) LIKE '%compressor%') AS FailureIntervals;"
+},
+{
+    "id": 4,
+    "question": "Please provide the Maintops of the main engine.",
+    "db_schema": "Tables: M_Equipment(MaintopID, MaintopNumber, MaintopMaker, MaintopModel, EquipmentName)",
+    "sql": "SELECT ME.MaintopID, ME.MaintopNumber, ME.MaintopMaker, ME.MaintopModel FROM M_Equipment AS ME WHERE ME.EquipmentName LIKE '%Main%Engine%';"
+},
+{
+    "id": 5,
+    "question": "What is the current running hour of the Reduction Gear Box?",
+    "db_schema": "Tables: M_Equipment(EquipmentName, Universal_ID_M_Equipment), T_EquipmentShipDetail(Universal_ID_M_Equipment, Universal_ID_T_EquipmentShipDetail), T_Dart(Present_Running_Hours, Universal_ID_T_EquipmentShipDetail, DartDate)",
+    "sql": "SELECT TOP 1 td.Present_Running_Hours, me.EquipmentName FROM M_Equipment AS me JOIN T_EquipmentShipDetail AS tesd ON me.Universal_ID_M_Equipment = tesd.Universal_ID_M_Equipment JOIN T_Dart AS td ON tesd.Universal_ID_T_EquipmentShipDetail = td.Universal_ID_T_EquipmentShipDetail WHERE me.EquipmentName LIKE '%Reduction%Gear%' ORDER BY td.DartDate DESC;"
+},
+{
+    "id": 6,
+    "question": "Who is the OEM/supplier for the AC plant?",
+    "db_schema": "Tables: M_Equipment(EquipmentName, ManufacturerName)",
+    "sql": "SELECT ME.ManufacturerName FROM M_Equipment AS ME WHERE ME.EquipmentName LIKE 'AC plant';"
+},
+{
+    "id": 7,
+    "question": "What is the equipment code of the refrigeration plant?",
+    "db_schema": "Tables: M_Equipment(EquipmentName, EquipmentCode)",
+    "sql": "SELECT me.EquipmentCode FROM M_Equipment AS me WHERE me.EquipmentName = 'refrigeration plant';"
+},
+{
+    "id": 8,
+    "question": "How much fuel was consumed in February 2024?",
+    "db_schema": "Tables: T_SRARMthlyHeader(FuelTotal, SrarMonth, SrarYear)",
+    "sql": "SELECT SUM(TSH.FuelTotal) FROM T_SRARMthlyHeader AS TSH WHERE TSH.SrarMonth = 2 AND TSH.SrarYear = 2024;"
+},
+{
+    "id": 9,
+    "question": "How many days has INS ___ sailed in 2024?",
+    "db_schema": "Tables: M_Ship(ShipName, Universal_ID_M_Ship), T_SRARMthlyHeader(HoursUnderwayMonth, Universal_ID_M_Ship, SrarYear)",
+    "sql": "SELECT SUM(TS.HoursUnderwayMonth) / 24.0 FROM M_Ship AS MS INNER JOIN T_SRARMthlyHeader AS TS ON MS.Universal_ID_M_Ship = TS.Universal_ID_M_Ship WHERE MS.ShipName = '%INS%' AND TS.SrarYear = 2024;"
+},
+{
+    "id": 10,
+    "question": "What is the maximum number of days at sea in 2024?",
+    "db_schema": "Tables: T_SRARMthlyHeader(HoursUnderwayMonth, SrarYear)",
+    "sql": "SELECT MAX(TH.HoursUnderwayMonth / 24.0) FROM T_SRARMthlyHeader AS TH WHERE TH.SrarYear = 2024;"
+},
+{
+    "id": 11,
+    "question": "Kindly provide the history/details of Opdefs raised on the AC plant.",
+    "db_schema": "Tables: T_OpdefMain(OpdefID, OpdefNo, OpdefDate, Defect, EffectOnOperation, Remarks, DIG, Severity, OpDefStatus, EquipmentID, EquipmentShipID, Universal_ID_T_EquipmentShipDetail), T_EquipmentShipDetail(Universal_ID_T_EquipmentShipDetail, Universal_ID_M_Equipment), M_Equipment(EquipmentName, Universal_ID_M_Equipment)",
+    "sql": "SELECT om.OpdefID, om.OpdefNo, om.OpdefDate, om.Defect, om.EffectOnOperation, om.Remarks, om.DIG, om.Severity, om.OpDefStatus, om.EquipmentID, om.EquipmentShipID, om.Universal_ID_T_EquipmentShipDetail, me.EquipmentName FROM T_OpdefMain AS om INNER JOIN T_EquipmentShipDetail AS esd ON om.Universal_ID_T_EquipmentShipDetail = esd.Universal_ID_T_EquipmentShipDetail INNER JOIN M_Equipment AS me ON esd.Universal_ID_M_Equipment = me.Universal_ID_M_Equipment WHERE me.EquipmentName LIKE '%AC plant%';"
+},
+{
+    "id": 12,
+    "question": "What was the last Opdef raised by INS ___?",
+    "db_schema": "Tables: T_OpdefMain(OpdefNo, OpdefDate, Universal_ID_M_Ship), M_Ship(ShipName, Universal_ID_M_Ship)",
+    "sql": "SELECT TOP 1 tom.OpdefNo, tom.OpdefDate, ms.ShipName FROM T_OpdefMain AS tom INNER JOIN M_Ship AS ms ON tom.Universal_ID_M_Ship = ms.Universal_ID_M_Ship WHERE ms.ShipName LIKE '%INS%' ORDER BY tom.OpdefDate DESC;"
+},
+{
+    "id": 13,
+    "question": "What is the name of the equipment with serial number 'A-177792'?",
+    "db_schema": "Tables: M_Equipment(EquipmentName, EquipmentCode)",
+    "sql": "SELECT me.EquipmentName FROM M_Equipment AS me WHERE me.EquipmentCode = 'A-177792';"
+},
+{
+    "id": 14,
+    "question": "Show me all defects reported for ship DART_NUMBER 12345",
+    "db_schema": "Tables: T_Dart(DartNumber, Defect)",
+    "sql": "SELECT td.Defect FROM T_Dart AS td WHERE td.DartNumber = 12345;"
+}
+]

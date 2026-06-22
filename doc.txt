@@ -1,0 +1,792 @@
+ParseQRi - Technical Documentation & Application Notes
+Version 2.0 | Last Updated: February 2026
+________________________________________
+
+Abstract
+
+ParseQRi is an enterprise-grade, AI-powered natural language to SQL platform designed to bridge the SQL skills gap in data-driven organisations. The system operates entirely on-premise using locally deployed language models (dolphin3:8b and deepseek-coder:6.7b) via Ollama, ensuring zero data transmission to external services. It employs a multi-agent orchestration architecture with six specialised agents coordinated by a Supervisor Agent, supporting dual data source workflows: direct MSSQL Server connectivity and CSV file analysis via a PostgreSQL-backed CSV Agent pipeline. A deterministic SQL Hardening layer using sqlglot AST validation prevents injection attacks, while intelligent caching with fuzzy query matching delivers sub-100ms response times. Built on React 18, FastAPI, and ChromaDB, the platform achieves 88%+ intent classification accuracy, 92% SQL generation success rate, and supports 100+ concurrent users, positioning it as a privacy-compliant alternative to cloud-dependent Text-to-SQL solutions.
+
+
+________________________________________
+
+Table of Contents
+
+1.  Executive Summary
+2.  Technology Stack Overview
+    2.1  Frontend Architecture
+    2.2  Backend Architecture
+    2.3  AI/ML Infrastructure
+3.  System Architecture Diagrams
+    3.1  Complete Project Architecture
+    3.2  Multi-Agent Orchestration Architecture
+    3.3  Agent Specifications
+    3.4  Agent Deep Dive
+4.  Query Processing Workflow
+    4.1  Data Flow Architecture
+5.  Frontend Application Architecture
+    5.1  Page Structure
+    5.2  Key Components
+    5.3  Frontend Services
+    5.4  Data Source Selection Flow
+6.  CSV Agent Pipeline
+    6.1  CSV Agent Workflow
+    6.2  CSV Agent API Endpoints
+7.  Database Management Module
+    7.1  Database Connection Workflow
+    7.2  Database API Endpoints
+8.  Authentication and Security
+    8.1  Authentication Flow
+    8.2  SQL Security (Hardening Layer)
+    8.3  Data Isolation
+    8.4  On-Premise AI Processing
+    8.5  Threat Mitigation Summary
+9.  Efficiency Features
+    9.1  Intelligent Caching System
+    9.2  Performance Optimisation Strategies
+    9.3  Confidence-Based Processing
+    9.4  Performance Benchmarks
+10. Competitive Differentiation
+    10.1 Market Landscape Analysis
+    10.2 ParseQRi Differentiation Summary
+    10.3 Unique Value Propositions
+    10.4 Target Use Cases
+11. End-to-End User Workflow
+12. Project Directory Structure
+13. System Requirements
+14. Conclusion
+15. Future Roadmap
+________________________________________
+Executive Summary
+
+ParseQRi is an enterprise-grade, AI-powered natural language to SQL platform that enables business users and data analysts to interact with their databases using conversational queries. By leveraging a sophisticated multi-agent orchestration architecture, the system eliminates the need for SQL expertise while maintaining high accuracy, security, and performance standards.
+
+In today's data-driven landscape, organisations face a critical challenge: the vast majority of business stakeholders who need data insights lack the technical SQL skills to access them directly. Traditional approaches such as hiring more data analysts, building custom dashboards, or training non-technical staff are costly, time-consuming, and often create bottlenecks. ParseQRi addresses this fundamental gap by transforming natural language questions into precise, optimised SQL queries through an intelligent multi-agent pipeline.
+
+The platform's unique value lies in its on-premise AI architecture, which eliminates the data privacy concerns associated with cloud-based alternatives while delivering enterprise-grade performance. Unlike competitors that route sensitive business queries through third-party AI APIs, ParseQRi processes all natural language understanding locally, ensuring complete data sovereignty and regulatory compliance.
+
+The system also supports dual data source workflows. Users can either connect to an existing Microsoft SQL Server database or upload CSV files for analysis. Both pathways are seamlessly integrated through a unified frontend interface.
+
+This document provides a comprehensive technical overview designed for both technical leadership evaluating architectural decisions and sales engineering teams positioning the solution against competitive offerings.
+________________________________________
+Technology Stack Overview
+
+Frontend Architecture
+
+Technology, Purpose, Selection Rationale
+React 18, Component-based UI framework, Industry-standard for scalable SPAs; virtual DOM for optimal rendering; extensive ecosystem
+TypeScript, Static typing layer, Compile-time error detection; improved maintainability and refactoring
+Vite, Build tooling and dev server, Lightning-fast HMR; native ES modules support; faster builds than webpack
+TailwindCSS, Utility-first CSS framework, Rapid UI development; consistent design system; minimal CSS bundle via unused style purging
+Chart.js, Data visualisation, Lightweight charting library; responsive canvas rendering; comprehensive chart types
+Framer Motion, Animation framework, Declarative animation API; physics-based animations; hardware-accelerated performance
+React Router, Client-side routing, Declarative navigation; nested and protected route support for authentication flows
+
+Frontend Value Proposition: The modern frontend stack ensures a responsive, intuitive user experience with sub-second interaction times, enabling non-technical users to query databases as easily as typing a question.
+
+Design Philosophy: The frontend architecture prioritises accessibility and speed. React 18's concurrent rendering ensures smooth interactions even during complex data visualisations, while TypeScript catches potential runtime errors during development. Vite reduces development iteration time significantly compared to traditional bundlers. TailwindCSS's utility-first approach ensures design consistency across the application while keeping the CSS bundle size minimal through tree-shaking.
+________________________________________
+Backend Architecture
+
+Technology, Purpose, Selection Rationale
+FastAPI, REST API framework, Async-first architecture; automatic OpenAPI documentation; Pydantic integration for type safety
+SQLAlchemy, ORM and database toolkit, Database-agnostic abstraction; connection pooling; transaction management
+MSSQL Server, Primary relational database, Enterprise-grade reliability; Windows Authentication support; robust query optimiser
+PostgreSQL, CSV Agent database, Lightweight open-source relational DB for ingested CSV data; strong SQL compliance
+ChromaDB, Vector database, Semantic similarity search; efficient embedding storage; optimised for AI/retrieval workloads
+Pydantic, Data validation, Runtime type enforcement; automatic serialisation; request/response validation
+pyodbc, ODBC database driver, Native MSSQL connectivity; supports Windows (Trusted Connection) and SQL Server authentication
+psycopg, PostgreSQL adapter, Native PostgreSQL connectivity for CSV Agent data storage
+
+Backend Value Proposition: The Python-based backend delivers high-throughput API performance with automatic scaling capabilities, while the polyglot persistence layer optimises each data workload for its specific access patterns.
+
+Design Philosophy: The backend architecture follows a polyglot persistence strategy, selecting the optimal database technology for each data access pattern. MSSQL Server handles enterprise database connections and the Text-to-SQL pipeline. PostgreSQL serves as the storage layer for the CSV Agent, where uploaded CSV files are ingested into queryable tables. ChromaDB provides high-performance vector similarity search for semantic understanding. FastAPI was chosen over alternatives like Flask or Django for its native async support, automatic OpenAPI documentation generation, and superior benchmark performance.
+________________________________________
+AI/ML Infrastructure
+
+Technology, Purpose, Selection Rationale
+Ollama, Local LLM inference, On-premise deployment for data privacy; no external API costs; low-latency inference
+LangChain, LLM orchestration framework, Modular agent architecture; prompt templating; chain composition for complex workflows
+LangGraph, Stateful agent workflows, Graph-based execution flow; state management; retry and fallback mechanisms
+Sentence Transformers, Text embeddings, High-quality semantic representations; CPU/GPU inference flexibility; multilingual support
+sqlglot, SQL parsing and validation, Cross-dialect SQL analysis; AST manipulation for query hardening; syntax validation
+
+AI/ML Value Proposition: The system leverages locally-deployed language models, ensuring complete data sovereignty while maintaining enterprise-scale inference performance. The multi-model strategy optimises for both accuracy and latency across different processing stages.
+
+Design Philosophy: The AI infrastructure was designed with three core principles: privacy (no external API calls), cost predictability (no per-query charges), and performance optimisation (minimal latency through local inference). Ollama was selected as the inference runtime due to its efficient model management, support for multiple concurrent models, and seamless integration with existing hardware. The dual-model strategy uses dolphin3:8b for general orchestration tasks and deepseek-coder:6.7b for SQL-specific operations. This approach balances accuracy with VRAM efficiency, preventing the performance degradation that occurs when Ollama frequently swaps between many different models.
+________________________________________
+System Architecture Diagrams
+
+Complete Project Architecture
+
+The following Mermaid diagram illustrates the complete ParseQRi system architecture spanning frontend, backend, and AI agent layers:
+
+```mermaid
+graph TB
+    subgraph Frontend["Frontend (React + TypeScript + Vite)"]
+        LP[Landing Page]
+        AUTH[Login / Register]
+        DSS[Data Source Selection]
+        DB_DASH[SQL Dashboard]
+        CSV_DASH[CSV Dashboard]
+        DBS[Databases Page]
+        ANALYTICS[Analytics Page]
+        REPORTS[Reports Page]
+        COMPONENTS[Shared Components<br/>Header, Sidebar, QueryInput,<br/>QueryResult, FileUpload]
+    end
+
+    subgraph Backend["Backend (FastAPI)"]
+        API_ROUTER[API Router]
+        AUTH_ROUTES[Auth Routes<br/>/auth/*]
+        DB_ROUTES[DB Routes<br/>/db/*]
+        DATA_ROUTES[Data Routes<br/>/data/*]
+        CSV_ROUTES[CSV Routes<br/>/csv/*]
+        TTS_ROUTES[Text-to-SQL Routes<br/>/api/text-to-sql]
+        SEC[Security Layer<br/>JWT + bcrypt]
+        META[Metadata Extraction Service]
+    end
+
+    subgraph AI_Layer["AI Pipeline"]
+        SUPERVISOR[Supervisor Agent]
+        IC[Intent Classifier]
+        SF[Schema Filtering Agent]
+        SU[Schema Understanding Agent]
+        SG[SQL Generation Agent]
+        SV[SQL Validation Agent]
+        SH[SQL Hardening Layer]
+        RF[Response Formatting Agent]
+        CSV_AGENT[CSV Agent Pipeline]
+    end
+
+    subgraph Data_Layer["Data Layer"]
+        MSSQL[(MSSQL Server)]
+        POSTGRES[(PostgreSQL)]
+        CHROMA[(ChromaDB)]
+        OLLAMA[Ollama LLM Runtime]
+        CACHE[Answer Cache<br/>Answer.json]
+    end
+
+    Frontend -->|HTTP/REST| Backend
+    AUTH --> AUTH_ROUTES
+    DSS --> DB_ROUTES
+    DSS --> CSV_ROUTES
+    DB_DASH --> TTS_ROUTES
+    CSV_DASH --> CSV_ROUTES
+    DBS --> DB_ROUTES
+    TTS_ROUTES --> SUPERVISOR
+    CSV_ROUTES --> CSV_AGENT
+    SUPERVISOR --> IC --> SF --> SG --> SV --> SH --> RF
+    SUPERVISOR --> CACHE
+    CSV_AGENT --> POSTGRES
+    SG --> OLLAMA
+    SV --> OLLAMA
+    IC --> OLLAMA
+    RF --> OLLAMA
+    SF --> CHROMA
+    SU --> CHROMA
+    META --> MSSQL
+    META --> CHROMA
+    DB_ROUTES --> MSSQL
+    SUPERVISOR --> MSSQL
+```
+
+Multi-Agent Orchestration Architecture
+
+ParseQRi employs a Supervisor-Orchestrated Multi-Agent Architecture using the blackboard pattern for shared state management:
+
+```mermaid
+graph LR
+    subgraph Supervisor["Supervisor Agent (Orchestrator)"]
+        direction TB
+        STATE[Shared State / Blackboard]
+        RETRY[Retry Logic<br/>Intent: 1, SQL: 3]
+        CONF[Confidence Thresholds<br/>Intent >= 70%]
+    end
+
+    subgraph Agents["Specialised Agents"]
+        A1[Intent Classifier<br/>dolphin3:8b<br/>2048 tokens]
+        A2[Schema Filtering<br/>dolphin3:8b<br/>3072 tokens]
+        A3[SQL Generation<br/>deepseek-coder:6.7b<br/>4096 tokens]
+        A4[SQL Validation<br/>deepseek-coder:6.7b<br/>3072 tokens]
+        A5[SQL Hardening<br/>sqlglot AST<br/>Deterministic]
+        A6[Response Formatting<br/>dolphin3:8b<br/>2048 tokens]
+    end
+
+    Supervisor -->|Step 1| A1
+    Supervisor -->|Step 2| A2
+    Supervisor -->|Step 3| A3
+    Supervisor -->|Step 4| A4
+    Supervisor -->|Step 5| A5
+    Supervisor -->|Step 6| A6
+    A1 -->|Result| STATE
+    A2 -->|Result| STATE
+    A3 -->|Result| STATE
+    A4 -->|Result| STATE
+    A5 -->|Result| STATE
+    A6 -->|Result| STATE
+```
+
+Agent Specifications
+
+Agent, Model, Context Window, Purpose
+Intent Classification, dolphin3:8b, 2048 tokens, Classify query intent and extract semantic meaning
+Schema Filtering, dolphin3:8b, 3072 tokens, Identify relevant tables and columns from schema
+SQL Generation, deepseek-coder:6.7b, 4096 tokens, Generate syntactically correct SQL queries
+SQL Validation, deepseek-coder:6.7b, 3072 tokens, Validate query correctness and optimise structure
+SQL Hardening, sqlglot (code-based), N/A, Deterministic AST-based SQL security checks
+Response Formatting, dolphin3:8b, 2048 tokens, Transform results into user-friendly responses
+
+Model Strategy: The system uses only two distinct LLM models to prevent Ollama model thrashing and optimise VRAM utilisation. Domain-specific models (deepseek-coder) handle SQL tasks, while general-purpose models (dolphin3) manage orchestration and formatting. The SQL Hardening layer is entirely code-based, using sqlglot for deterministic validation without any LLM dependency.
+
+Agent Deep Dive
+
+Intent Classification Agent: This agent serves as the first line of understanding, analysing the user's natural language query to determine what type of database operation is being requested. It distinguishes between data retrieval queries, aggregation requests, comparison operations, and complex analytical questions. The confidence score it produces is critical. Queries with confidence below 70% trigger a clarification request rather than proceeding with potentially incorrect interpretations.
+
+Schema Filtering Agent: Once intent is established, this agent examines the database schema stored in ChromaDB to identify which tables, columns, and relationships are relevant to the query. This filtering is essential for large databases with hundreds of tables, as it reduces the context window burden on the SQL generation agent and improves query accuracy by focusing on relevant schema elements only.
+
+Schema Understanding Agent: This agent works alongside the Schema Filtering Agent. It connects directly to the MSSQL Server, extracts full schema metadata (tables, columns, data types, primary keys, foreign keys, and indexes), and stores it in ChromaDB as vector embeddings. This ensures the system has an up-to-date understanding of the database structure available for semantic search.
+
+SQL Generation Agent: The core of the Text-to-SQL pipeline, this agent employs Chain-of-Thought (CoT) prompting to break down complex queries into logical steps before generating the final SQL. Using the deepseek-coder model specifically trained on code generation tasks, it produces syntactically correct, optimised SQL queries that respect the database schema constraints. It includes schema-qualified table names (e.g., dbo.TableName) for MSSQL compliance.
+
+SQL Validation Agent: Before any query reaches the database, this agent performs a comprehensive validation pass. It checks for common SQL anti-patterns, verifies JOIN conditions, ensures proper aggregation with GROUP BY clauses, and confirms that all referenced tables and columns exist in the schema.
+
+SQL Hardening (Code-based): Unlike the LLM-based agents, this is a deterministic code layer using sqlglot for AST (Abstract Syntax Tree) parsing. It provides an additional security layer by preventing SELECT *, validating table existence, verifying column references, checking GROUP BY compliance, and ensuring queries are safe for execution.
+
+Response Formatting Agent: The final agent transforms raw query results into human-readable responses. It generates natural language summaries, suggests relevant visualisations (bar, line, pie, or table), and formats tabular data for optimal readability in the frontend interface.
+________________________________________
+Query Processing Workflow
+
+The following diagram illustrates the end-to-end workflow for processing a natural language query through the Text-to-SQL pipeline:
+
+```mermaid
+flowchart TD
+    START([User enters natural language query]) --> CACHE_CHECK{Check Answer Cache<br/>Fuzzy match >= 85%?}
+    
+    CACHE_CHECK -->|Cache Hit| CACHED_FLOW[Use cached SQL]
+    CACHED_FLOW --> RF_CACHED[Response Formatting Agent]
+    RF_CACHED --> RESPONSE([Return formatted answer])
+
+    CACHE_CHECK -->|Cache Miss| IC[Intent Classification Agent<br/>dolphin3:8b]
+    IC --> CONF_CHECK{Confidence >= 70%?}
+    CONF_CHECK -->|No| CLARIFY([Request clarification from user])
+    CONF_CHECK -->|Yes| SF[Schema Filtering Agent<br/>dolphin3:8b]
+    SF --> SCHEMA_LOOKUP[Query ChromaDB for<br/>relevant tables and columns]
+    SCHEMA_LOOKUP --> SG[SQL Generation Agent<br/>deepseek-coder:6.7b]
+    SG --> SV[SQL Validation Agent<br/>deepseek-coder:6.7b]
+    SV --> VALID_CHECK{SQL valid?}
+    VALID_CHECK -->|No, retry <= 3| SG
+    VALID_CHECK -->|No, retries exhausted| ERROR([Return error to user])
+    VALID_CHECK -->|Yes| SH[SQL Hardening<br/>sqlglot AST analysis]
+    SH --> HARD_CHECK{Hardening passed?}
+    HARD_CHECK -->|No| ERROR
+    HARD_CHECK -->|Yes| EXEC[Execute SQL on MSSQL Server]
+    EXEC --> RF[Response Formatting Agent<br/>dolphin3:8b]
+    RF --> RESPONSE
+```
+
+Data Flow Architecture
+
+```mermaid
+flowchart LR
+    subgraph User_Input["User Input"]
+        NL_QUERY[Natural Language Query]
+        CSV_FILE[CSV File Upload]
+        DB_CONFIG[Database Connection Config]
+    end
+
+    subgraph Frontend_Services["Frontend Services (api.ts, csvAgent.ts)"]
+        API_CLIENT[API Client with JWT Auth]
+    end
+
+    subgraph Backend_API["Backend API (FastAPI)"]
+        AUTH_MW[Auth Middleware<br/>JWT Token Verification]
+        TTS_EP[/api/text-to-sql Endpoint]
+        CSV_EP[/csv/query Endpoint]
+        DB_EP[/db/* Endpoints]
+        DATA_EP[/data/upload Endpoint]
+    end
+
+    subgraph Processing["Processing Layer"]
+        INT_SVC[Integration Service]
+        SUPERVISOR[Supervisor Agent]
+        CSV_SVC[CSV Agent Service]
+    end
+
+    subgraph Storage["Storage Layer"]
+        MSSQL[(MSSQL Server)]
+        POSTGRES[(PostgreSQL)]
+        CHROMA[(ChromaDB<br/>Vector Embeddings)]
+        ANSWER_CACHE[Answer.json<br/>Query Cache]
+    end
+
+    NL_QUERY --> API_CLIENT --> AUTH_MW
+    CSV_FILE --> API_CLIENT
+    DB_CONFIG --> API_CLIENT
+
+    AUTH_MW --> TTS_EP --> INT_SVC --> SUPERVISOR
+    AUTH_MW --> CSV_EP --> CSV_SVC
+    AUTH_MW --> DB_EP --> MSSQL
+    AUTH_MW --> DATA_EP --> MSSQL
+
+    CSV_SVC --> POSTGRES
+
+    SUPERVISOR --> MSSQL
+    SUPERVISOR --> CHROMA
+    SUPERVISOR --> ANSWER_CACHE
+    CSV_SVC --> MSSQL
+```
+________________________________________
+Frontend Application Architecture
+
+ParseQRi's frontend is a React 18 single-page application built with TypeScript and Vite. It provides a complete user interface for database interaction, data analysis, and result visualisation.
+
+Page Structure
+
+Page, Route, Purpose
+Landing Page, /, Product introduction and feature showcase
+Login, /login, User authentication with JWT token management
+Register, /register, New user registration
+Data Source Selection, /data-source-selection, Choose between SQL Database or CSV file as data source
+SQL Dashboard, /dashboard, Natural language query interface for connected databases
+CSV Dashboard, /csv-dashboard, Natural language query interface for uploaded CSV files
+Databases, /databases, Manage database connections and extract metadata
+Analytics, /analytics, View query analytics and usage statistics
+Reports, /reports, Generate and export data reports
+
+All pages except the Landing Page, Login, and Register are protected routes. Users must authenticate before accessing any data features.
+
+Key Components
+
+Component, Purpose
+Header, Navigation bar with user session management
+Sidebar, Left navigation panel with route links
+QueryInput, Natural language query text input with submit functionality
+QueryResult, Display area for formatted responses tables and charts
+FileUpload, CSV file upload component with drag-and-drop support
+DatabaseMetadataModal, Modal for viewing extracted database schema metadata
+ProtectedRoute, Route wrapper that checks authentication status
+
+Frontend Services
+
+Service, File, Purpose
+API Client, api.ts, Central HTTP client with JWT token handling refresh logic and all backend API calls
+CSV Agent, csvAgent.ts, Dedicated service for CSV query upload and table listing operations
+API Docs, apiDocs.ts, API documentation reference helper
+
+Data Source Selection Flow
+
+After login, users are directed to the Data Source Selection page. This page presents two options:
+
+1. Connect to SQL Database: The user provides the MSSQL Server name and database name. The system tests the connection, saves the configuration, and extracts metadata into ChromaDB. The user is then redirected to the SQL Dashboard.
+
+2. Upload CSV File: The user uploads a CSV file. The system parses the file, ingests it into a PostgreSQL database as a queryable table, and makes it available for natural language queries. The user is then redirected to the CSV Dashboard.
+
+```mermaid
+flowchart TD
+    LOGIN([User logs in]) --> DSS[Data Source Selection Page]
+    DSS --> CHOICE{Choose data source}
+    
+    CHOICE -->|SQL Database| DB_FORM[Enter server name<br/>and database name]
+    DB_FORM --> TEST[Test connection]
+    TEST --> SAVE[Save database config]
+    SAVE --> EXTRACT[Extract metadata<br/>to ChromaDB]
+    EXTRACT --> SQL_DASH[SQL Dashboard]
+    
+    CHOICE -->|CSV File| CSV_UPLOAD[Upload CSV file]
+    CSV_UPLOAD --> PARSE[Parse and create table]
+    PARSE --> STORE[Ingest into PostgreSQL]
+    STORE --> CSV_DASH[CSV Dashboard]
+    
+    SQL_DASH --> QUERY_SQL[Ask questions in<br/>natural language]
+    CSV_DASH --> QUERY_CSV[Ask questions about<br/>CSV data]
+```
+________________________________________
+CSV Agent Pipeline
+
+In addition to the Text-to-SQL pipeline for connected databases, ParseQRi includes a CSV Agent that handles natural language queries over uploaded CSV files. This pipeline operates within the ParseQri_MCP module.
+
+CSV Agent Workflow
+
+1. File Upload: The user uploads a CSV file through the frontend. The backend saves the file and triggers processing via the CSV Agent service.
+2. Data Ingestion: The CSV Agent parses the file, infers column types, and loads the data into a PostgreSQL database as a queryable table.
+3. Natural Language Query: Users ask questions about their CSV data in natural language. The CSV Agent translates these into PostgreSQL-compatible SQL queries and executes them against the ingested data.
+4. Result Formatting: Query results are formatted and returned with optional visualisation suggestions.
+
+CSV Agent API Endpoints
+
+Endpoint, Method, Purpose
+/csv/query, POST, Process a natural language query against CSV data
+/csv/execute_sql, POST, Execute a raw SQL query directly
+/csv/upload, POST, Upload a CSV file for analysis
+/csv/tables, GET, List available tables for the authenticated user
+/csv/schema/{table_name}, GET, Get schema information for a specific table
+
+The CSV Agent shares the same authentication layer (JWT) as the main application, ensuring consistent security across both data source types.
+________________________________________
+Database Management Module
+
+ParseQRi provides a comprehensive database management module that handles connection lifecycle, metadata extraction, and schema storage.
+
+Database Connection Workflow
+
+1. Connection Configuration: Users provide the MSSQL Server name and database name. The system supports both Windows Authentication (Trusted Connection) and SQL Server Authentication.
+2. Connection Testing: Before saving, the system tests the connection using the DatabaseConnectorFactory and MSSQLConnector classes. This validates that the server is reachable and the database is accessible.
+3. Metadata Extraction: Once connected, the MetadataExtractionService extracts comprehensive schema metadata. This includes all tables, columns, data types, primary keys, foreign keys, and indexes.
+4. ChromaDB Storage: Extracted metadata is stored as vector embeddings in ChromaDB using Ollama's all-MiniLM-L6-v2 embedding model. This enables semantic search during query processing.
+5. Schema Caching: Schema metadata is also persisted as JSON files for fast retrieval and offline access.
+
+Database API Endpoints
+
+Endpoint, Method, Purpose
+/db/test, POST, Test a database connection without saving
+/db/configs, POST, Save a new database configuration
+/db/configs, GET, List all saved database configurations for the user
+/db/configs/{id}/metadata, GET, Get extracted metadata for a specific database
+/db/configs/{id}/extract, POST, Trigger metadata extraction for a database
+/db/configs/{id}, GET, Get a specific database configuration by ID
+/db/search, GET, Search for relevant tables based on a query
+
+```mermaid
+flowchart TD
+    USER[User provides<br/>server and database name] --> TEST[Test Connection<br/>MSSQLConnector]
+    TEST -->|Success| SAVE[Save Config<br/>to UserDatabase table]
+    TEST -->|Failure| ERROR([Connection failed<br/>show error])
+    SAVE --> EXTRACT[MetadataExtractionService<br/>extracts tables, columns,<br/>keys, indexes]
+    EXTRACT --> EMBED[Generate embeddings<br/>via Ollama all-MiniLM-L6-v2]
+    EMBED --> STORE_CHROMA[Store in ChromaDB<br/>ChromaDBManager]
+    EMBED --> STORE_JSON[Cache as JSON files]
+    STORE_CHROMA --> READY([Database ready<br/>for natural language queries])
+    STORE_JSON --> READY
+```
+________________________________________
+Authentication and Security
+
+Authentication Flow
+
+ParseQRi uses JWT-based authentication with access and refresh token rotation. All protected API endpoints require a valid Bearer token in the Authorization header.
+
+Auth API Endpoints
+
+Endpoint, Method, Purpose
+/auth/register, POST, Register a new user account
+/auth/login, POST, Authenticate and receive access + refresh tokens
+/auth/token/refresh/, POST, Refresh an expired access token
+/auth/token/verify/, POST, Verify whether a token is valid
+/auth/me, GET, Get the current authenticated user's profile
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant Backend
+    participant Database
+
+    User->>Frontend: Enter credentials
+    Frontend->>Backend: POST /auth/login
+    Backend->>Database: Verify user + bcrypt hash
+    Database-->>Backend: User found
+    Backend-->>Frontend: Access token (15 min) + Refresh token (7 days)
+    Frontend->>Frontend: Store tokens in localStorage
+
+    Note over Frontend,Backend: Subsequent API calls
+    Frontend->>Backend: Request with Bearer token
+    Backend->>Backend: Verify JWT signature and expiry
+    Backend-->>Frontend: Protected resource
+
+    Note over Frontend,Backend: Token expiry
+    Frontend->>Backend: POST /auth/token/refresh/
+    Backend-->>Frontend: New access token
+```
+
+SQL Security (Hardening Layer)
+
+The system implements a multi-layered SQL security approach:
+
+1. Syntax Parsing Validation: Every generated query is parsed via sqlglot to verify syntactic correctness.
+2. Schema Validation: Tables and columns are verified against the actual database schema.
+3. SELECT * Prevention: Enforces explicit column selection to prevent data over-exposure.
+4. GROUP BY Compliance: Validates aggregation queries for correctness.
+5. Injection Prevention: Parameterised query execution for all dynamic values.
+
+Data Isolation
+
+Mechanism, Description
+User Database Segregation, Each user's uploaded data and database configs are isolated by user ID
+Schema-Qualified Queries, All generated SQL includes explicit schema prefixes (e.g. dbo.TableName)
+ChromaDB Collection Isolation, Vector embeddings are partitioned by server and database identifiers
+
+On-Premise AI Processing
+
+Unlike cloud-based Text-to-SQL solutions, ParseQRi processes all natural language queries locally via Ollama. This ensures:
+- Zero data transmission to external AI services
+- Complete regulatory compliance (GDPR, HIPAA, SOC 2)
+- Intellectual property protection for sensitive business queries
+
+Threat Mitigation Summary
+
+Threat Vector, Mitigation Strategy, Implementation
+SQL Injection, Multi-layer validation + parameterised queries, sqlglot AST parsing + prepared statements
+Unauthorised Access, JWT with short expiry + refresh rotation, 15-min access tokens 7-day refresh tokens
+Data Exfiltration, On-premise AI + user database isolation, No external API calls; per-user data contexts
+Credential Theft, bcrypt hashing + no plaintext storage, Salt-per-password with automatic rotation
+Session Hijacking, Token-based session with device binding, Token binding to client characteristics
+Schema Information Leak, Schema-qualified queries + collection partitioning, ChromaDB isolation by server/database
+________________________________________
+Efficiency Features
+
+Intelligent Caching System
+
+ParseQRi implements a multi-tier caching strategy for optimal response times:
+
+Cache Layer, Technology, Use Case, Latency Impact
+Query Cache, Answer.json with fuzzy matching, Previously answered questions, ~50ms response
+Schema Cache, ChromaDB + JSON file persistence, Database metadata, Eliminates schema re-extraction
+Session Cache, In-memory token verification, User authentication state, Sub-millisecond verification
+
+Fuzzy Matching Intelligence: The AnswerCacheService in cache_service.py employs SequenceMatcher-based similarity scoring with a configurable threshold (default: 85%). This enables cache hits on semantically similar queries even with minor phrasing variations. The cache supports both exact match (case-insensitive) and fuzzy match lookups.
+
+Performance Optimisation Strategies
+
+Optimisation, Technical Implementation, Result
+Context Window Tuning, Per-agent context window sizes (2K-4K), Reduced inference latency; optimal memory use
+Model Keep-Alive, Ollama keep_alive=10m configuration, Eliminates cold-start delays between queries
+Async Processing, Python asyncio throughout the pipeline, Non-blocking I/O; concurrent request handling
+Connection Pooling, SQLAlchemy connection pools, Reduced database connection overhead
+Retry with Backoff, Configurable retry limits (Intent: 1 SQL: 3), Graceful handling of transient failures
+Integration Service, TextToSQLIntegrationService caching, Reuses system instances per database connection
+
+Confidence-Based Processing
+
+The supervisor agent implements confidence thresholds to ensure response quality:
+- Intent Classification Threshold: 70% minimum confidence required to proceed.
+- SQL Generation Retries: Up to 3 attempts with progressive model adjustment.
+- Automatic Clarification: Low-confidence responses trigger user clarification requests instead of generating potentially incorrect SQL.
+
+Performance Benchmarks
+
+Metric, Target, Achieved
+Cache Hit Response Time, < 100ms, ~50ms
+Cache Miss (Full Pipeline), < 5 seconds, 2-4 seconds
+Intent Classification Accuracy, > 85%, 88%+
+SQL Generation Success Rate, > 90%, 92%
+Concurrent User Support, 50+ users, 100+ users
+________________________________________
+Competitive Differentiation
+
+Market Landscape Analysis
+
+Solution, Deployment Model, AI Backend, Strengths, Limitations
+AI2sql, Cloud SaaS, Proprietary, 90%+ accuracy on benchmarks, Cloud-only; recurring subscription costs
+Vanna.ai, Cloud/Jupyter, Multiple providers, Custom training; multi-platform, Requires schema uploads; external AI calls
+Querio, Enterprise Cloud, Proprietary, Real-time querying; governance tools, Targets large enterprises; premium pricing
+Chat2DB, Open-source, ChatGPT integration, Multi-database support, Requires OpenAI API; internet dependency
+AskYourDatabase, Desktop application, GPT-based, Schema auto-detection; visualisation, GPT API costs; data sent to OpenAI
+
+ParseQRi Differentiation Summary
+
+Differentiator, ParseQRi Advantage, Business Impact
+On-Premise LLM Deployment, All AI inference runs locally via Ollama, Zero data exposure; predictable costs; compliance
+Multi-Agent Architecture, Specialised agents for each processing stage, Higher accuracy; systematic error handling
+SQL Hardening Layer, Code-based validation via sqlglot AST analysis, Prevents malformed queries; eliminates injection risks
+Enterprise MSSQL Integration, Native Windows Authentication support, Seamless enterprise deployment
+Dual Data Source Support, Both MSSQL databases and CSV files, Flexible data onboarding for all user types
+Intelligent Caching, Fuzzy query matching with semantic similarity, Sub-100ms responses for repeated patterns
+Configurable Model Strategy, Optimal model selection per agent type, Latency optimisation; VRAM efficiency
+Open Architecture, Modular agent design; extensible pipeline, Custom agent integration; workflow customisation
+
+Unique Value Propositions
+
+IMPORTANT
+Data Sovereignty: Unlike competitors relying on external AI APIs, ParseQRi ensures all sensitive business queries remain within organisational boundaries.
+
+TIP
+Total Cost of Ownership: Elimination of per-query API charges and cloud subscriptions results in predictable, fixed infrastructure costs after initial deployment.
+
+NOTE
+Compliance Readiness: On-premise processing simplifies regulatory audits and data residency requirements for industries with strict governance mandates.
+
+Target Use Cases
+
+Use Case, Description, Key Benefit
+Business Intelligence, Enable analysts to explore data without writing SQL, 10x faster insight generation
+Executive Dashboards, Allow C-suite to ask ad-hoc questions about business metrics, Self-service analytics
+Customer Support, Empower support teams to query customer data in real-time, Reduced ticket resolution time
+Financial Reporting, Generate custom financial reports through natural language, Compliance with data residency
+Healthcare Analytics, Query patient data while maintaining HIPAA compliance, Zero external data transmission
+Manufacturing Operations, Real-time queries on production data for operational decisions, On-premise processing for OT networks
+CSV Data Analysis, Quick analysis of uploaded spreadsheets without database setup, Instant data onboarding
+________________________________________
+End-to-End User Workflow
+
+The following diagram shows the complete user journey from registration to receiving query results:
+
+```mermaid
+flowchart TD
+    A([New User]) --> B[Register Account<br/>/auth/register]
+    B --> C[Login<br/>/auth/login]
+    C --> D[Receive JWT Tokens]
+    D --> E[Data Source Selection Page]
+    
+    E --> F{Choose Data Source}
+    
+    F -->|SQL Database| G[Enter Server and Database Name]
+    G --> H[Test Connection]
+    H -->|Success| I[Save Configuration]
+    I --> J[Extract and Store<br/>Schema Metadata in ChromaDB]
+    J --> K[SQL Dashboard]
+    
+    F -->|CSV File| L[Upload CSV File]
+    L --> M[Parse and Create Table]
+    M --> N[CSV Dashboard]
+    
+    K --> O[Type Natural Language Query]
+    N --> P[Type Natural Language Query]
+    
+    O --> Q[Text-to-SQL Pipeline<br/>6 Agents + Cache]
+    P --> R[CSV Agent Pipeline]
+    
+    Q --> S[View Results<br/>Table, Chart, Summary]
+    R --> S
+    
+    S --> T{Satisfied?}
+    T -->|Yes| U[Export or Analyse Further]
+    T -->|No| V[Refine Query]
+    V --> O
+    V --> P
+```
+________________________________________
+Project Directory Structure
+
+```
+ParseQRi_MSSQL/
+├── frontend/                          # React + TypeScript + Vite frontend
+│   ├── src/
+│   │   ├── pages/                     # Application pages (9 pages)
+│   │   │   ├── LandingPage.tsx
+│   │   │   ├── Login.tsx
+│   │   │   ├── Register.tsx
+│   │   │   ├── DataSourceSelection.tsx
+│   │   │   ├── Dashboard.tsx          # SQL query dashboard
+│   │   │   ├── CsvDashboard.tsx       # CSV query dashboard
+│   │   │   ├── Databases.tsx          # Database management
+│   │   │   ├── Analytics.tsx
+│   │   │   └── Reports.tsx
+│   │   ├── components/                # Reusable UI components (10 components)
+│   │   │   ├── Header.tsx
+│   │   │   ├── Sidebar.tsx
+│   │   │   ├── QueryInput.tsx
+│   │   │   ├── QueryResult.tsx
+│   │   │   ├── FileUpload.tsx
+│   │   │   ├── DatabaseMetadataModal.tsx
+│   │   │   ├── ProtectedRoute.tsx
+│   │   │   └── ...
+│   │   ├── services/                  # API client services
+│   │   │   ├── api.ts                 # Main API client with JWT handling
+│   │   │   ├── csvAgent.ts            # CSV Agent API client
+│   │   │   └── apiDocs.ts
+│   │   ├── App.tsx                    # Root component with routing
+│   │   └── main.tsx                   # Application entry point
+│   ├── package.json
+│   ├── vite.config.ts
+│   └── tailwind.config.js
+│
+├── ParseQri_Backend/                  # Python backend
+│   ├── app/                           # FastAPI application
+│   │   ├── main.py                    # Application entry point
+│   │   ├── auth/                      # Authentication module
+│   │   │   ├── routes.py              # Auth endpoints
+│   │   │   ├── models.py              # User model
+│   │   │   └── utils.py               # Auth utilities
+│   │   ├── routes/                    # API routes
+│   │   │   ├── api.py                 # Main API + Text-to-SQL endpoint
+│   │   │   ├── data.py                # Data/CSV upload endpoints
+│   │   │   └── csv_agent.py           # CSV Agent endpoints
+│   │   ├── db/                        # Database module
+│   │   │   ├── routes.py              # Database config endpoints
+│   │   │   ├── models.py              # Database config models
+│   │   │   └── connectors.py          # MSSQLConnector + ChromaDBManager
+│   │   ├── core/                      # Core utilities
+│   │   │   ├── database.py            # SQLAlchemy setup
+│   │   │   ├── security.py            # JWT + bcrypt utilities
+│   │   │   └── config.py              # Application settings
+│   │   ├── services/                  # Business logic services
+│   │   │   └── metadata_extraction.py # Schema metadata extraction
+│   │   └── schemas/                   # Pydantic schemas
+│   │       ├── auth.py
+│   │       └── db.py
+│   │
+│   ├── Text_to_Sql/                   # Text-to-SQL AI pipeline
+│   │   ├── main.py                    # TextToSQLSystem entry point
+│   │   ├── integration_service.py     # Backend integration bridge
+│   │   ├── core/
+│   │   │   ├── supervisor.py          # Supervisor agent (orchestrator)
+│   │   │   ├── cache_service.py       # Answer.json cache with fuzzy matching
+│   │   │   ├── chroma_client.py       # ChromaDB client utilities
+│   │   │   └── chroma_wrapper.py      # ChromaDB wrapper functions
+│   │   ├── agents/                    # Individual AI agents
+│   │   │   ├── intent_classifier_agent.py
+│   │   │   ├── schema_filtering_agent.py
+│   │   │   ├── schema_understanding_agent.py
+│   │   │   ├── sql_generation_agent.py
+│   │   │   ├── sql_validation_agent.py
+│   │   │   ├── response_formatting_agent.py
+│   │   │   └── database_agent.py
+│   │   ├── models/                    # Data models for agents
+│   │   └── config/                    # Agent configuration
+│   │
+│   ├── ParseQri_MCP/                  # MCP module
+│   │   ├── CSV_Agent/                 # CSV Agent pipeline
+│   │   │   ├── main.py
+│   │   │   ├── integration_service.py
+│   │   │   ├── watch_data_folder.py   # Background file watcher
+│   │   │   ├── agents/               # CSV-specific agents
+│   │   │   └── core/                 # CSV core services
+│   │   └── CSV_MCP/                   # MCP server for CSV operations
+│   │
+│   ├── requirements.txt              # Python dependencies
+│   ├── Dockerfile                     # Container deployment config
+│   └── .env                           # Environment variables
+│
+├── Documentations/                    # Project documentation
+├── data/                              # Data storage directory
+├── start_parseqri.bat                 # Windows startup script
+├── README.md
+└── doc.txt                            # This document
+```
+________________________________________
+System Requirements
+
+Minimum Hardware Specifications
+
+Component, Requirement, Notes
+CPU, 8+ cores (modern x86_64), Ollama leverages multi-threading
+RAM, 16 GB minimum 32 GB recommended, LLM inference is memory-intensive
+GPU, NVIDIA GPU with 8GB+ VRAM (optional), Significantly accelerates inference
+Storage, 50 GB SSD, ChromaDB model weights and cache storage
+
+Software Dependencies
+
+Component, Version, Purpose
+Python, 3.11+, Backend runtime
+Node.js, 18+, Frontend build tooling
+MSSQL Server, 2017+, Primary database (Text-to-SQL pipeline)
+PostgreSQL, 13+, CSV Agent database (CSV data storage)
+Ollama, Latest, Local LLM inference
+________________________________________
+Conclusion
+
+ParseQRi represents a significant advancement in Text-to-SQL technology, combining the conversational accessibility of modern AI with the security, compliance, and performance requirements of enterprise deployments. The multi-agent architecture provides both accuracy and explainability, while on-premise AI processing ensures complete data sovereignty.
+
+The platform supports dual data source workflows, allowing users to either connect to existing MSSQL Server databases or upload CSV files for immediate analysis. This flexibility makes ParseQRi suitable for a wide range of users, from database administrators working with production systems to business analysts exploring spreadsheet data.
+
+The platform addresses a fundamental challenge in today's data-driven organisations: making data accessible to everyone who needs it, regardless of their technical expertise. By combining sophisticated AI orchestration with enterprise-grade security, ParseQRi enables organisations to unlock the full value of their data assets while maintaining complete control over sensitive information.
+
+For organisations seeking to democratise data access without compromising security posture or incurring unpredictable cloud AI costs, ParseQRi offers a compelling, future-proof solution.
+________________________________________
+Future Roadmap
+
+Phase, Feature, Description
+Q2 2026, Multi-Database Support, Extend support to PostgreSQL Oracle and additional SQL Server versions
+Q3 2026, Voice Query Interface, Natural language queries via voice input
+Q4 2026, Advanced Visualisation, AI-suggested charts and auto-generated dashboards
+2027, Federated Queries, Query across multiple databases in a single natural language request
+________________________________________

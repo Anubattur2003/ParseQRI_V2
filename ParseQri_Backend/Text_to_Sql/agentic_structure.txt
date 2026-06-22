@@ -1,0 +1,36 @@
+# Text_To_SQL Folder Structure
+
+Text_To_SQL/
+├── __init__.py
+├── README.md
+├── config.json
+├── main.py
+├── requirements.txt
+├── agents/
+│   ├── __init__.py
+│   ├── __pycache__/
+│   ├── database_agent.py
+│   ├── intent_classifier_agent.py
+│   ├── schema_filtering_agent.py
+│   ├── sql_generation.py
+│   ├── sql_validation.py
+│   └── response_formatting.py
+│
+├── cache/
+│
+├── core/
+│   ├── __init__.py
+│   ├── __pycache__/
+│   └── orchestrator.py
+│
+├── models/
+│   ├── __init__.py
+│   ├── __pycache__/
+│   └── data_models.py
+│
+├── tests/
+│
+└── utils/
+    ├── __init__.py
+    ├── __pycache__/
+    └── README.md

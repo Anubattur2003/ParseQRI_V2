@@ -1,0 +1,36 @@
+{
+    "database": {
+        "driver": "ODBC Driver 17 for SQL Server",
+        "timeout": 30,
+        "connection_retries": 3
+    },
+    "agents": {
+        "database_agent": {
+            "metadata_refresh_interval": 3600,
+            "chroma_persist_directory": "cache/chroma"
+        },
+        "intent_classifier": {
+            "confidence_threshold": 0.7
+        },
+        "schema_understanding": {
+            "max_tables": 10,
+            "max_columns": 50
+        },
+        "sql_generation": {
+            "max_tokens": 1000,
+            "temperature": 0.5
+        },
+        "sql_validation": {
+            "timeout": 10,
+            "max_retries": 3
+        },
+        "response_formatting": {
+            "max_length": 2000
+        }
+    },
+    "orchestrator": {
+        "checkpoint_interval": 300,
+        "max_retries": 3,
+        "timeout": 60
+    }
+}

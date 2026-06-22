@@ -1,0 +1,22 @@
+{
+  "user_id": "2",
+  "table_name": "2_customers",
+  "csv_file": "D:\\Projects\\C2CAS_Projects\\Testing\\ParseQRi_MSSQL\\ParseQri_Backend\\uploads\\csv_tmp\\2_customers.csv",
+  "document_id": "2_customers",
+  "metadata": {
+    "table_name": "2_customers",
+    "columns": {
+      "customerid": "Customerid",
+      "companyname": "Companyname",
+      "contactname": "Contactname",
+      "contacttitle": "Contacttitle",
+      "address": "Address",
+      "city": "City",
+      "region": "Region",
+      "postalcode": "Postalcode",
+      "country": "Country",
+      "phone": "Phone",
+      "fax": "Fax"
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "user_id": "5",
+  "table_name": "employee_information",
+  "csv_file": "D:\\ParseQRI_V2\\ParseQri_Backend\\uploads\\csv_tmp\\5_employees.csv",
+  "document_id": "5_employee_information",
+  "metadata": {
+    "table_name": "employee_information",
+    "columns": {
+      "EMPLOYEE_ID": "Unique identifier for each employee",
+      "FIRST_NAME": "Employee's first name",
+      "LAST_NAME": "Employee's last name",
+      "EMAIL": "Employee's email address",
+      "PHONE_NUMBER": "Employee's phone number",
+      "HIRE_DATE": "Date the employee was hired",
+      "JOB_ID": "Job title of the employee",
+      "SALARY": "Employee's annual salary",
+      "COMMISSION_PCT": "Percentage of salary earned in commission",
+      "MANAGER_ID": "Employee's direct manager's ID"
+    }
+  }
+}

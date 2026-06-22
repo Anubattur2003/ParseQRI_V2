@@ -1,0 +1,235 @@
+Parseqri – Supervisor Agent Implementation Plan
+
+(Local Ollama, Latency-Optimized, Production-Safe)
+
+1. Objective
+
+Implement a Supervisor (Orchestrator) Agent that:
+
+Coordinates all Parseqri agents
+
+Uses Ollama-available models
+
+Minimizes model load/unload latency
+
+Improves SQL accuracy and reliability
+
+Prevents hallucination and uncontrolled agent behavior
+
+2. Models to Use (FINAL)
+
+Use only two models to avoid Ollama thrashing.
+
+Purpose	Model
+Supervisor, Intent, Schema, Response	dolphin3:8b
+SQL Generation & SQL Validation	deepseek-coder:6.7b
+Ollama setup
+ollama pull dolphin3:8b
+ollama pull deepseek-coder:6.7b
+export OLLAMA_KEEP_ALIVE=10m
+
+3. Shared Blackboard State (Single Source of Truth)
+
+Create a single mutable state object.
+
+state = {
+    "user_query": "",
+    "intent": {
+        "type": "",
+        "metrics": [],
+        "dimensions": [],
+        "filters": [],
+        "confidence": 0.0
+    },
+    "schema_context": {
+        "tables": [],
+        "columns": [],
+        "relationships": []
+    },
+    "sql": {
+        "query": "",
+        "attempts": 0,
+        "confidence": 0.0
+    },
+    "validation": {
+        "is_valid": False,
+        "errors": []
+    },
+    "execution": {
+        "rows": [],
+        "row_count": 0
+    },
+    "final_response": ""
+}
+
+
+Rules
+
+Each agent updates only its own section
+
+Supervisor controls execution order
+
+No agent directly calls another agent
+
+4. Supervisor Agent Responsibilities
+
+The Supervisor:
+
+Decides which agent runs next
+
+Enforces retry limits
+
+Switches models intelligently
+
+Terminates safely on failure
+
+Never generates SQL or answers
+
+5. Supervisor Execution Flow (Deterministic)
+1. Run Intent Classification (dolphin3)
+2. If intent confidence < 0.70 → retry once
+3. If still < 0.70 → exit with clarification request
+4. Run Schema Filtering (dolphin3)
+5. Run SQL Generation (deepseek-coder)
+6. Run SQL Validation (deepseek-coder)
+7. If validation fails:
+     - increment sql.attempts
+     - retry SQL generation (max 2 attempts)
+8. If SQL valid:
+     - execute SQL in code (not LLM)
+9. Run Response Formatting (dolphin3)
+10. Return final response
+
+6. Supervisor Pseudo-Code
+def supervisor(state):
+
+    run_intent_agent(state, model="dolphin3:8b")
+    if state["intent"]["confidence"] < 0.7:
+        run_intent_agent(state, model="dolphin3:8b")
+
+    if state["intent"]["confidence"] < 0.7:
+        return "Please clarify your request."
+
+    run_schema_agent(state, model="dolphin3:8b")
+
+    while state["sql"]["attempts"] < 2:
+        run_sql_generation_agent(state, model="deepseek-coder:6.7b")
+        run_sql_validation_agent(state, model="deepseek-coder:6.7b")
+
+        if state["validation"]["is_valid"]:
+            break
+
+        state["sql"]["attempts"] += 1
+
+    if not state["validation"]["is_valid"]:
+        return "Unable to generate a valid SQL query."
+
+    execute_sql_in_code(state)
+
+    run_response_agent(state, model="dolphin3:8b")
+
+    return state["final_response"]
+
+7. Agent–Model Mapping (Strict)
+Agent	Model
+Supervisor	dolphin3:8b
+Intent Classification	dolphin3:8b
+Schema Filtering	dolphin3:8b
+SQL Generation	deepseek-coder:6.7b
+SQL Validation	deepseek-coder:6.7b
+Response Formatting	dolphin3:8b
+8. SQL Hardening (MANDATORY)
+
+Add code-level validation before accepting SQL.
+
+Checks:
+
+SQL parses successfully
+
+Tables exist
+
+Columns exist
+
+GROUP BY correctness
+
+No SELECT *
+
+If any check fails:
+
+Mark validation as failed
+
+Retry SQL generation
+
+Recommended libraries:
+
+sqlglot or sqlparse
+
+9. Latency Optimization Rules
+
+Group calls by model
+
+Do not interleave models unnecessarily
+
+Use low context for Supervisor
+
+# Supervisor
+OLLAMA_NUM_CTX=2048
+
+# SQL agents
+OLLAMA_NUM_CTX=4096
+
+10. Logging (Do Not Skip)
+
+Log per step:
+
+agent name
+
+model used
+
+confidence scores
+
+retry count
+
+validation errors
+
+This is required for:
+
+debugging
+
+demos
+
+interviews
+
+11. Testing Checklist
+
+Test in this order:
+
+Simple lookup query
+
+Aggregation (SUM / COUNT)
+
+GROUP BY query
+
+JOIN query
+
+Ambiguous query (should fail safely)
+
+12. Final Guarantee
+
+This implementation:
+
+Avoids Ollama model thrashing
+
+Improves SQL accuracy
+
+Is fully local
+
+Is production-style
+
+Is interview-defensible
+
+13. One-Line Description (Use in README)
+
+“Parseqri uses a supervisor-orchestrated multi-agent Text-to-SQL pipeline with shared state, combining Dolphin-3 for orchestration and DeepSeek-Coder for SQL accuracy, optimized for local inference.”
+
+END OF IMPLEMENTATION PLAN

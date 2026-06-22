@@ -1,0 +1,15 @@
+{
+  "user_id": "4",
+  "table_name": "movies",
+  "csv_file": "D:\\ParseQRI_V2\\ParseQri_Backend\\uploads\\csv_tmp\\4_movies_data.csv",
+  "document_id": "4_movies",
+  "metadata": {
+    "table_name": "movies",
+    "columns": {
+      "movie_id": "Unique identifier for each movie",
+      "title": "Name of the movie",
+      "genre": "Movie's genre category",
+      "release_year": "Year the movie was released"
+    }
+  }
+}

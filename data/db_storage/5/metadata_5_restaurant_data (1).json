@@ -1,0 +1,15 @@
+{
+  "user_id": "5",
+  "table_name": "restaurants",
+  "csv_file": "D:\\ParseQRI_V2\\ParseQri_Backend\\uploads\\csv_tmp\\5_restaurant_data (1).csv",
+  "document_id": "5_restaurants",
+  "metadata": {
+    "table_name": "restaurants",
+    "columns": {
+      "restaurant_id": "Unique identifier for each restaurant",
+      "restaurant_name": "Name of the restaurant",
+      "cuisine": "Type of food served at the restaurant",
+      "city": "City where the restaurant is located"
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "user_id": "2",
+  "table_name": "2_loan",
+  "csv_file": "D:\\Projects\\C2CAS_Projects\\Testing\\ParseQRi_MSSQL\\ParseQri_Backend\\uploads\\csv_tmp\\2_loan.csv",
+  "document_id": "2_loan",
+  "metadata": {
+    "table_name": "2_loan",
+    "columns": {
+      "loan_id": "Loan Id",
+      "gender": "Gender",
+      "married": "Married",
+      "dependents": "Dependents",
+      "education": "Education",
+      "self_employed": "Self Employed",
+      "applicantincome": "Applicantincome",
+      "coapplicantincome": "Coapplicantincome",
+      "loanamount": "Loanamount",
+      "loan_amount_term": "Loan Amount Term",
+      "credit_history": "Credit History",
+      "property_area": "Property Area",
+      "loan_status": "Loan Status"
+    }
+  }
+}

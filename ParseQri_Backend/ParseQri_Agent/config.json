@@ -1,0 +1,66 @@
+{
+  "agents": {
+    "database_agent": {
+      "module": "agents.database_agent",
+      "class": "database_agent",
+      "params": {}
+    },
+    "intent_classifier": {
+      "module": "agents.intent_classification",
+      "class": "Intent_classifier_agent",
+      "params": {
+        "llm_model": "llama3.1",
+        "api_base": "http://localhost:11434"
+      }
+    },
+    "sql_generation": {
+      "module": "agents.sql_generation",
+      "class": "sql_generation_agent",
+      "params": {
+        "llm_model": "qwen2.5",
+        "api_base": "http://localhost:11434"
+      }
+    },
+    "sql_validation": {
+      "module": "agents.sql_validation",
+      "class": "sql_validation_agent",
+      "params": {
+        "llm_model": "orca2",
+        "api_base": "http://localhost:11434"
+      }
+    },
+    "response_formatting": {
+      "module": "agents.response_formatting",
+      "class": "response_formatting_agent",
+      "params": {
+        "llm_model": "mistral",
+        "api_base": "http://localhost:11434"
+      }
+    },
+    "schema_filtering": {
+      "module": "agents.schema_filtering",
+      "class": "schema_filtering_agent",
+      "params": {}
+    },
+    "text_to_sql_generation": {
+      "model": "codellama:instruct",
+      "api_base": "http://localhost:11434",
+      "api_fallback_url": "http://localhost:8000/sql/generate/"
+    }
+  },
+  "database": {
+    "default_db_name": "",
+    "default_table_name": "",
+    "data_folder": "../data/csv_output"
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "../data/query_logs/textsql.log"
+  },
+  "api": {
+    "base_url": "http://localhost:8000",
+    "timeout": 30,
+    "retry_attempts": 3,
+    "retry_delay": 1
+  }
+}

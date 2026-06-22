@@ -1,0 +1,413 @@
+{
+  "server_name": "C2C-LP-25-012",
+  "database_name": "AdventureWorksLT2017",
+  "timestamp": "2026-01-20T16:07:16.762212",
+  "sql_server_version": "Microsoft SQL Server 2022 (RTM) - 16.0.1000.6 (X64) \n\tOct  8 2022 05:58:25 \n\tCopyright (C) 2022 Microsoft Corporation\n\tExpress Edition (64-bit) on Windows 10 Home Single Language 10.0 <X64> (Build 26200: ) (Hypervisor)\n",
+  "schema": {
+    "dbo.BuildVersion": {
+      "columns": [
+        "Database Version",
+        "ModifiedDate",
+        "SystemInformationID",
+        "VersionDate"
+      ],
+      "data_types": [
+        "nvarchar",
+        "datetime",
+        "tinyint",
+        "datetime"
+      ],
+      "foreign_keys": [],
+      "schema": "dbo",
+      "table_name": "BuildVersion"
+    },
+    "dbo.ErrorLog": {
+      "columns": [
+        "ErrorLine",
+        "ErrorLogID",
+        "ErrorMessage",
+        "ErrorNumber",
+        "ErrorProcedure",
+        "ErrorSeverity",
+        "ErrorState",
+        "ErrorTime",
+        "UserName"
+      ],
+      "data_types": [
+        "int",
+        "int",
+        "nvarchar",
+        "int",
+        "nvarchar",
+        "int",
+        "int",
+        "datetime",
+        "nvarchar"
+      ],
+      "foreign_keys": [],
+      "schema": "dbo",
+      "table_name": "ErrorLog"
+    },
+    "SalesLT.Address": {
+      "columns": [
+        "AddressID",
+        "AddressLine1",
+        "AddressLine2",
+        "City",
+        "CountryRegion",
+        "ModifiedDate",
+        "PostalCode",
+        "rowguid",
+        "StateProvince"
+      ],
+      "data_types": [
+        "int",
+        "nvarchar",
+        "nvarchar",
+        "nvarchar",
+        "nvarchar",
+        "datetime",
+        "nvarchar",
+        "uniqueidentifier",
+        "nvarchar"
+      ],
+      "foreign_keys": [],
+      "schema": "SalesLT",
+      "table_name": "Address"
+    },
+    "SalesLT.Customer": {
+      "columns": [
+        "CompanyName",
+        "CustomerID",
+        "EmailAddress",
+        "FirstName",
+        "LastName",
+        "MiddleName",
+        "ModifiedDate",
+        "NameStyle",
+        "PasswordHash",
+        "PasswordSalt",
+        "Phone",
+        "rowguid",
+        "SalesPerson",
+        "Suffix",
+        "Title"
+      ],
+      "data_types": [
+        "nvarchar",
+        "int",
+        "nvarchar",
+        "nvarchar",
+        "nvarchar",
+        "nvarchar",
+        "datetime",
+        "bit",
+        "varchar",
+        "varchar",
+        "nvarchar",
+        "uniqueidentifier",
+        "nvarchar",
+        "nvarchar",
+        "nvarchar"
+      ],
+      "foreign_keys": [],
+      "schema": "SalesLT",
+      "table_name": "Customer"
+    },
+    "SalesLT.CustomerAddress": {
+      "columns": [
+        "AddressID",
+        "AddressType",
+        "CustomerID",
+        "ModifiedDate",
+        "rowguid"
+      ],
+      "data_types": [
+        "int",
+        "nvarchar",
+        "int",
+        "datetime",
+        "uniqueidentifier"
+      ],
+      "foreign_keys": [
+        {
+          "name": "FK_CustomerAddress_Address_AddressID",
+          "column": "AddressID",
+          "referenced_table": "SalesLT.Address",
+          "referenced_column": "AddressID"
+        },
+        {
+          "name": "FK_CustomerAddress_Customer_CustomerID",
+          "column": "CustomerID",
+          "referenced_table": "SalesLT.Customer",
+          "referenced_column": "CustomerID"
+        }
+      ],
+      "schema": "SalesLT",
+      "table_name": "CustomerAddress"
+    },
+    "SalesLT.Product": {
+      "columns": [
+        "Color",
+        "DiscontinuedDate",
+        "ListPrice",
+        "ModifiedDate",
+        "Name",
+        "ProductCategoryID",
+        "ProductID",
+        "ProductModelID",
+        "ProductNumber",
+        "rowguid",
+        "SellEndDate",
+        "SellStartDate",
+        "Size",
+        "StandardCost",
+        "ThumbNailPhoto",
+        "ThumbnailPhotoFileName",
+        "Weight"
+      ],
+      "data_types": [
+        "nvarchar",
+        "datetime",
+        "money",
+        "datetime",
+        "nvarchar",
+        "int",
+        "int",
+        "int",
+        "nvarchar",
+        "uniqueidentifier",
+        "datetime",
+        "datetime",
+        "nvarchar",
+        "money",
+        "varbinary",
+        "nvarchar",
+        "decimal"
+      ],
+      "foreign_keys": [
+        {
+          "name": "FK_Product_ProductCategory_ProductCategoryID",
+          "column": "ProductCategoryID",
+          "referenced_table": "SalesLT.ProductCategory",
+          "referenced_column": "ProductCategoryID"
+        },
+        {
+          "name": "FK_Product_ProductModel_ProductModelID",
+          "column": "ProductModelID",
+          "referenced_table": "SalesLT.ProductModel",
+          "referenced_column": "ProductModelID"
+        }
+      ],
+      "schema": "SalesLT",
+      "table_name": "Product"
+    },
+    "SalesLT.ProductCategory": {
+      "columns": [
+        "ModifiedDate",
+        "Name",
+        "ParentProductCategoryID",
+        "ProductCategoryID",
+        "rowguid"
+      ],
+      "data_types": [
+        "datetime",
+        "nvarchar",
+        "int",
+        "int",
+        "uniqueidentifier"
+      ],
+      "foreign_keys": [
+        {
+          "name": "FK_ProductCategory_ProductCategory_ParentProductCategoryID_ProductCategoryID",
+          "column": "ParentProductCategoryID",
+          "referenced_table": "SalesLT.ProductCategory",
+          "referenced_column": "ProductCategoryID"
+        }
+      ],
+      "schema": "SalesLT",
+      "table_name": "ProductCategory"
+    },
+    "SalesLT.ProductDescription": {
+      "columns": [
+        "Description",
+        "ModifiedDate",
+        "ProductDescriptionID",
+        "rowguid"
+      ],
+      "data_types": [
+        "nvarchar",
+        "datetime",
+        "int",
+        "uniqueidentifier"
+      ],
+      "foreign_keys": [],
+      "schema": "SalesLT",
+      "table_name": "ProductDescription"
+    },
+    "SalesLT.ProductModel": {
+      "columns": [
+        "CatalogDescription",
+        "ModifiedDate",
+        "Name",
+        "ProductModelID",
+        "rowguid"
+      ],
+      "data_types": [
+        "xml",
+        "datetime",
+        "nvarchar",
+        "int",
+        "uniqueidentifier"
+      ],
+      "foreign_keys": [],
+      "schema": "SalesLT",
+      "table_name": "ProductModel"
+    },
+    "SalesLT.ProductModelProductDescription": {
+      "columns": [
+        "Culture",
+        "ModifiedDate",
+        "ProductDescriptionID",
+        "ProductModelID",
+        "rowguid"
+      ],
+      "data_types": [
+        "nchar",
+        "datetime",
+        "int",
+        "int",
+        "uniqueidentifier"
+      ],
+      "foreign_keys": [
+        {
+          "name": "FK_ProductModelProductDescription_ProductDescription_ProductDescriptionID",
+          "column": "ProductDescriptionID",
+          "referenced_table": "SalesLT.ProductDescription",
+          "referenced_column": "ProductDescriptionID"
+        },
+        {
+          "name": "FK_ProductModelProductDescription_ProductModel_ProductModelID",
+          "column": "ProductModelID",
+          "referenced_table": "SalesLT.ProductModel",
+          "referenced_column": "ProductModelID"
+        }
+      ],
+      "schema": "SalesLT",
+      "table_name": "ProductModelProductDescription"
+    },
+    "SalesLT.SalesOrderDetail": {
+      "columns": [
+        "LineTotal",
+        "ModifiedDate",
+        "OrderQty",
+        "ProductID",
+        "rowguid",
+        "SalesOrderDetailID",
+        "SalesOrderID",
+        "UnitPrice",
+        "UnitPriceDiscount"
+      ],
+      "data_types": [
+        "numeric",
+        "datetime",
+        "smallint",
+        "int",
+        "uniqueidentifier",
+        "int",
+        "int",
+        "money",
+        "money"
+      ],
+      "foreign_keys": [
+        {
+          "name": "FK_SalesOrderDetail_Product_ProductID",
+          "column": "ProductID",
+          "referenced_table": "SalesLT.Product",
+          "referenced_column": "ProductID"
+        },
+        {
+          "name": "FK_SalesOrderDetail_SalesOrderHeader_SalesOrderID",
+          "column": "SalesOrderID",
+          "referenced_table": "SalesLT.SalesOrderHeader",
+          "referenced_column": "SalesOrderID"
+        }
+      ],
+      "schema": "SalesLT",
+      "table_name": "SalesOrderDetail"
+    },
+    "SalesLT.SalesOrderHeader": {
+      "columns": [
+        "AccountNumber",
+        "BillToAddressID",
+        "Comment",
+        "CreditCardApprovalCode",
+        "CustomerID",
+        "DueDate",
+        "Freight",
+        "ModifiedDate",
+        "OnlineOrderFlag",
+        "OrderDate",
+        "PurchaseOrderNumber",
+        "RevisionNumber",
+        "rowguid",
+        "SalesOrderID",
+        "SalesOrderNumber",
+        "ShipDate",
+        "ShipMethod",
+        "ShipToAddressID",
+        "Status",
+        "SubTotal",
+        "TaxAmt",
+        "TotalDue"
+      ],
+      "data_types": [
+        "nvarchar",
+        "int",
+        "nvarchar",
+        "varchar",
+        "int",
+        "datetime",
+        "money",
+        "datetime",
+        "bit",
+        "datetime",
+        "nvarchar",
+        "tinyint",
+        "uniqueidentifier",
+        "int",
+        "nvarchar",
+        "datetime",
+        "nvarchar",
+        "int",
+        "tinyint",
+        "money",
+        "money",
+        "money"
+      ],
+      "foreign_keys": [
+        {
+          "name": "FK_SalesOrderHeader_Address_BillTo_AddressID",
+          "column": "BillToAddressID",
+          "referenced_table": "SalesLT.Address",
+          "referenced_column": "AddressID"
+        },
+        {
+          "name": "FK_SalesOrderHeader_Address_ShipTo_AddressID",
+          "column": "ShipToAddressID",
+          "referenced_table": "SalesLT.Address",
+          "referenced_column": "AddressID"
+        },
+        {
+          "name": "FK_SalesOrderHeader_Customer_CustomerID",
+          "column": "CustomerID",
+          "referenced_table": "SalesLT.Customer",
+          "referenced_column": "CustomerID"
+        }
+      ],
+      "schema": "SalesLT",
+      "table_name": "SalesOrderHeader"
+    }
+  },
+  "schema_markdown": "# Database Schema\n\n## Table: dbo.BuildVersion\n\n### Columns:\n- Database Version (nvarchar)\n- ModifiedDate (datetime)\n- SystemInformationID (tinyint)\n- VersionDate (datetime)\n\n## Table: dbo.ErrorLog\n\n### Columns:\n- ErrorLine (int)\n- ErrorLogID (int)\n- ErrorMessage (nvarchar)\n- ErrorNumber (int)\n- ErrorProcedure (nvarchar)\n- ErrorSeverity (int)\n- ErrorState (int)\n- ErrorTime (datetime)\n- UserName (nvarchar)\n\n## Table: SalesLT.Address\n\n### Columns:\n- AddressID (int)\n- AddressLine1 (nvarchar)\n- AddressLine2 (nvarchar)\n- City (nvarchar)\n- CountryRegion (nvarchar)\n- ModifiedDate (datetime)\n- PostalCode (nvarchar)\n- rowguid (uniqueidentifier)\n- StateProvince (nvarchar)\n\n## Table: SalesLT.Customer\n\n### Columns:\n- CompanyName (nvarchar)\n- CustomerID (int)\n- EmailAddress (nvarchar)\n- FirstName (nvarchar)\n- LastName (nvarchar)\n- MiddleName (nvarchar)\n- ModifiedDate (datetime)\n- NameStyle (bit)\n- PasswordHash (varchar)\n- PasswordSalt (varchar)\n- Phone (nvarchar)\n- rowguid (uniqueidentifier)\n- SalesPerson (nvarchar)\n- Suffix (nvarchar)\n- Title (nvarchar)\n\n## Table: SalesLT.CustomerAddress\n\n### Columns:\n- AddressID (int)\n- AddressType (nvarchar)\n- CustomerID (int)\n- ModifiedDate (datetime)\n- rowguid (uniqueidentifier)\n\n### Foreign Keys:\n- AddressID ➡️ SalesLT.Address.AddressID\n- CustomerID ➡️ SalesLT.Customer.CustomerID\n\n## Table: SalesLT.Product\n\n### Columns:\n- Color (nvarchar)\n- DiscontinuedDate (datetime)\n- ListPrice (money)\n- ModifiedDate (datetime)\n- Name (nvarchar)\n- ProductCategoryID (int)\n- ProductID (int)\n- ProductModelID (int)\n- ProductNumber (nvarchar)\n- rowguid (uniqueidentifier)\n- SellEndDate (datetime)\n- SellStartDate (datetime)\n- Size (nvarchar)\n- StandardCost (money)\n- ThumbNailPhoto (varbinary)\n- ThumbnailPhotoFileName (nvarchar)\n- Weight (decimal)\n\n### Foreign Keys:\n- ProductCategoryID ➡️ SalesLT.ProductCategory.ProductCategoryID\n- ProductModelID ➡️ SalesLT.ProductModel.ProductModelID\n\n## Table: SalesLT.ProductCategory\n\n### Columns:\n- ModifiedDate (datetime)\n- Name (nvarchar)\n- ParentProductCategoryID (int)\n- ProductCategoryID (int)\n- rowguid (uniqueidentifier)\n\n### Foreign Keys:\n- ParentProductCategoryID ➡️ SalesLT.ProductCategory.ProductCategoryID\n\n## Table: SalesLT.ProductDescription\n\n### Columns:\n- Description (nvarchar)\n- ModifiedDate (datetime)\n- ProductDescriptionID (int)\n- rowguid (uniqueidentifier)\n\n## Table: SalesLT.ProductModel\n\n### Columns:\n- CatalogDescription (xml)\n- ModifiedDate (datetime)\n- Name (nvarchar)\n- ProductModelID (int)\n- rowguid (uniqueidentifier)\n\n## Table: SalesLT.ProductModelProductDescription\n\n### Columns:\n- Culture (nchar)\n- ModifiedDate (datetime)\n- ProductDescriptionID (int)\n- ProductModelID (int)\n- rowguid (uniqueidentifier)\n\n### Foreign Keys:\n- ProductDescriptionID ➡️ SalesLT.ProductDescription.ProductDescriptionID\n- ProductModelID ➡️ SalesLT.ProductModel.ProductModelID\n\n## Table: SalesLT.SalesOrderDetail\n\n### Columns:\n- LineTotal (numeric)\n- ModifiedDate (datetime)\n- OrderQty (smallint)\n- ProductID (int)\n- rowguid (uniqueidentifier)\n- SalesOrderDetailID (int)\n- SalesOrderID (int)\n- UnitPrice (money)\n- UnitPriceDiscount (money)\n\n### Foreign Keys:\n- ProductID ➡️ SalesLT.Product.ProductID\n- SalesOrderID ➡️ SalesLT.SalesOrderHeader.SalesOrderID\n\n## Table: SalesLT.SalesOrderHeader\n\n### Columns:\n- AccountNumber (nvarchar)\n- BillToAddressID (int)\n- Comment (nvarchar)\n- CreditCardApprovalCode (varchar)\n- CustomerID (int)\n- DueDate (datetime)\n- Freight (money)\n- ModifiedDate (datetime)\n- OnlineOrderFlag (bit)\n- OrderDate (datetime)\n- PurchaseOrderNumber (nvarchar)\n- RevisionNumber (tinyint)\n- rowguid (uniqueidentifier)\n- SalesOrderID (int)\n- SalesOrderNumber (nvarchar)\n- ShipDate (datetime)\n- ShipMethod (nvarchar)\n- ShipToAddressID (int)\n- Status (tinyint)\n- SubTotal (money)\n- TaxAmt (money)\n- TotalDue (money)\n\n### Foreign Keys:\n- BillToAddressID ➡️ SalesLT.Address.AddressID\n- ShipToAddressID ➡️ SalesLT.Address.AddressID\n- CustomerID ➡️ SalesLT.Customer.CustomerID\n\n"
+}
